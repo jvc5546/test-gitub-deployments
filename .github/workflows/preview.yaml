@@ -8,11 +8,11 @@ on:
 #   group: ${{ github.workflow }}-${{ github.ref }}
 #   cancel-in-progress: true
 
-# permissions:
-#   deployments: write
-#   contents: read
-#   pull-requests: write
-#   issues: write
+permissions:
+  deployments: write
+  contents: read
+  pull-requests: write
+  issues: write
   
 jobs:
   preview:
