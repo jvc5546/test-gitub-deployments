@@ -1,0 +1,56 @@
+name: Preview Environment
+
+on:
+  pull_request:
+    types: [opened]
+  
+# concurrency:
+#   group: ${{ github.workflow }}-${{ github.ref }}
+#   cancel-in-progress: true
+
+# permissions:
+#   deployments: write
+#   contents: read
+#   pull-requests: write
+#   issues: write
+  
+jobs:
+  preview:
+    runs-on: ubuntu-latest
+    steps:
+      # - name: Context
+      #   uses: okteto/context@latest
+      #   with:
+      #     url: ${{secrets.OKTETO_CONTEXT}}
+      #     token: ${{ secrets.OKTETO_TOKEN }}
+
+      - name: Create GitHub deployment
+        id: deployment
+        uses: chrnorm/deployment-action@v2
+        with:
+          token: ${{ github.token }}
+          initial-status: pending
+          environment: pr-${{ github.event.number }}
+          environment-url: https://okteto.example-preview-pr-${{ github.event.number }}.com
+
+      - name: Deploy preview environment
+        # uses: okteto/deploy-preview@latest
+        # env:
+        #   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        # with:
+        #   name: pr-${{ github.event.number }}
+        #   timeout: 15m
+        #   file: okteto.preview.yaml
+        #   variables: SITE_URL=https://lightdash-preview-pr-${{ github.event.number }}.lightdash.okteto.dev
+        run: echo "Deploying preview environment"
+
+      # We have to use the CI token here because the github managed GITHUB_TOKEN does not trigger workflows
+      # (github actions enforce this to avoid creating a loop of workflows)
+      # But we want this to trigger end to end tests
+      - name: Update deployment status
+        uses: chrnorm/deployment-status@v2
+        with:
+          token: ${{ github.token }}
+          state: success
+          deployment-id: ${{ steps.deployment.outputs.deployment_id }}
+          environment-url: https://okteto.example-preview-pr-${{ github.event.number }}.com
